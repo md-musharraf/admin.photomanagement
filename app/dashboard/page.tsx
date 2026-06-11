@@ -43,7 +43,8 @@ import {
   ArrowUpCircle,
   History,
   Sparkles,
-  Link as LinkIcon
+  Link as LinkIcon,
+  IndianRupee
 } from 'lucide-react';
 import { SoftwareUpdate } from '@/lib/fileDb';
 
@@ -545,6 +546,7 @@ export default function DashboardPage() {
                           <th className="py-4 px-6 min-w-[140px]">Contact Phone</th>
                           <th className="py-4 px-6 min-w-[170px]">Machine ID</th>
                           <th className="py-4 px-6 min-w-[170px]">Expiry & Access Status</th>
+                          <th className="py-4 px-6 min-w-[100px]">Price (₹)</th>
                           <th className="py-4 px-6 min-w-[310px]">License Key</th>
                           <th className="py-4 px-6 text-right min-w-[185px]">Actions</th>
                         </tr>
@@ -599,6 +601,13 @@ export default function DashboardPage() {
                                   <span className={`inline-block text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded ${adminStatus.color}`}>
                                     {adminStatus.label}
                                   </span>
+                                </div>
+                              </td>
+
+                              <td className="py-4 px-6">
+                                <div className="flex items-center gap-1 text-zinc-200 text-sm font-semibold">
+                                  <IndianRupee className="h-3.5 w-3.5 text-emerald-400" />
+                                  {(customer.price ?? 0).toLocaleString('en-IN')}
                                 </div>
                               </td>
 
@@ -744,6 +753,13 @@ export default function DashboardPage() {
                                   ? `${customer.machine_id.substring(0, 8)}...${customer.machine_id.slice(-8)}` 
                                   : customer.machine_id}
                               </span>
+                            </div>
+                            <div className="space-y-1">
+                              <div className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">Price</div>
+                              <div className="flex items-center gap-1 text-zinc-300 font-semibold">
+                                <IndianRupee className="h-3 w-3 text-emerald-400" />
+                                {(customer.price ?? 0).toLocaleString('en-IN')}
+                              </div>
                             </div>
                           </div>
 

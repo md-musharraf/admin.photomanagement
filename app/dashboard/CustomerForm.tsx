@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { createCustomer } from './actions';
-import { X, Plus, Camera, User, Phone, Cpu, Calendar, AlertTriangle } from 'lucide-react';
+import { X, Plus, Camera, User, Phone, Cpu, Calendar, AlertTriangle, IndianRupee } from 'lucide-react';
 
 interface CustomerFormProps {
   isOpen: boolean;
@@ -16,6 +16,7 @@ export default function CustomerForm({ isOpen, onClose, onSuccess }: CustomerFor
   const [phone, setPhone] = useState('');
   const [machineId, setMachineId] = useState('');
   const [planDuration, setPlanDuration] = useState('7 Days (Trial)');
+  const [price, setPrice] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,6 +39,7 @@ export default function CustomerForm({ isOpen, onClose, onSuccess }: CustomerFor
         phone,
         machineId,
         planDuration,
+        price: parseFloat(price) || 0,
       });
 
       if (res.error) {
@@ -52,6 +54,7 @@ export default function CustomerForm({ isOpen, onClose, onSuccess }: CustomerFor
         setPhone('');
         setMachineId('');
         setPlanDuration('1 Year');
+        setPrice('');
         onSuccess();
         onClose();
       }
@@ -192,7 +195,8 @@ export default function CustomerForm({ isOpen, onClose, onSuccess }: CustomerFor
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
-                    handleSubmit(e);
+                    const priceEl = document.getElementById('price');
+                    if (priceEl) priceEl.focus();
                   }
                 }}
                 className="w-full bg-zinc-900/50 border border-zinc-800/80 hover:border-zinc-700 focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/30 rounded-xl py-2.5 px-3.5 outline-none text-zinc-100 text-sm transition-all"
@@ -204,6 +208,31 @@ export default function CustomerForm({ isOpen, onClose, onSuccess }: CustomerFor
                 <option value="1 Year">1 Year (Standard)</option>
                 <option value="2 Years">2 Years (Premium)</option>
               </select>
+            </div>
+
+            {/* Price */}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2 flex items-center gap-1.5">
+                <IndianRupee className="h-3.5 w-3.5 text-indigo-400" />
+                Price (₹)
+              </label>
+              <input
+                id="price"
+                type="number"
+                min="0"
+                step="1"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSubmit(e);
+                  }
+                }}
+                placeholder="e.g. 5000"
+                className="w-full bg-zinc-900/50 border border-zinc-800/80 hover:border-zinc-700 focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/30 rounded-xl py-2.5 px-3.5 outline-none text-zinc-100 text-sm placeholder-zinc-600 transition-all"
+                disabled={loading}
+              />
             </div>
 
             {/* Error Message */}

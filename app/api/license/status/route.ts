@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
 
     // Supabase Mode
     const { data, error } = await supabase
-      .from('customers')
+      .from('photo_customers')
       .select('*')
       .eq('machine_id', machineId)
       .maybeSingle();

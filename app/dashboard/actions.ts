@@ -15,6 +15,7 @@ export interface Customer {
   expiry_date: string;
   license_key: string;
   status: string; // 'ACTIVE' | 'PAUSED' | 'STOPPED'
+  price?: number;
 }
 
 // Check if we are running in demo mode with dummy credentials
@@ -66,7 +67,7 @@ export async function fetchCustomers() {
 
   try {
     const { data, error } = await supabase
-      .from('customers')
+      .from('photo_customers')
       .select('*')
       .order('created_at', { ascending: false });
 
@@ -81,7 +82,8 @@ export async function fetchCustomers() {
       const fileCust = fileList.find(fc => fc.id === c.id || fc.machine_id === c.machine_id);
       return {
         ...c,
-        status: c.status || fileCust?.status || 'ACTIVE'
+        status: c.status || fileCust?.status || 'ACTIVE',
+        price: c.price ?? fileCust?.price ?? 0
       };
     }) as Customer[];
 
@@ -101,8 +103,9 @@ export async function createCustomer(formData: {
   phone: string;
   machineId: string;
   planDuration: string;
+  price: number;
 }) {
-  const { labName, ownerName, phone, machineId, planDuration } = formData;
+  const { labName, ownerName, phone, machineId, planDuration, price } = formData;
 
   if (!labName || !ownerName || !phone || !machineId || !planDuration) {
     return { error: 'All fields are required' };
@@ -135,6 +138,7 @@ export async function createCustomer(formData: {
       expiry_date: expiryStr,
       license_key: licenseKey,
       status: 'ACTIVE',
+      price: price || 0,
     };
     list.push(newCust);
     writeCustomers(list);
@@ -144,7 +148,7 @@ export async function createCustomer(formData: {
 
   try {
     const { data, error } = await supabase
-      .from('customers')
+      .from('photo_customers')
       .insert([
         {
           lab_name: labName,
@@ -153,7 +157,8 @@ export async function createCustomer(formData: {
           machine_id: machineId,
           expiry_date: expiryStr,
           license_key: licenseKey,
-          status: 'ACTIVE'
+          status: 'ACTIVE',
+          price: price || 0
         },
       ])
       .select();
@@ -202,7 +207,7 @@ export async function renewLicense(id: string, machineId: string) {
 
   try {
     const { error } = await supabase
-      .from('customers')
+      .from('photo_customers')
       .update({
         expiry_date: expiryStr,
         license_key: licenseKey,
@@ -239,7 +244,7 @@ export async function deleteCustomer(id: string) {
   }
 
   try {
-    const { error } = await supabase.from('customers').delete().eq('id', id);
+    const { error } = await supabase.from('photo_customers').delete().eq('id', id);
 
     if (error) {
       console.error('Supabase error deleting customer:', error);
@@ -286,7 +291,7 @@ export async function updateCustomerStatus(id: string, status: 'ACTIVE' | 'PAUSE
       writeCustomers(list);
     } else {
       // Find details from Supabase to store locally in fileDb fallback
-      const { data: dbCust } = await supabase.from('customers').select('*').eq('id', id).maybeSingle();
+      const { data: dbCust } = await supabase.from('photo_customers').select('*').eq('id', id).maybeSingle();
       if (dbCust) {
         list.push({
           id: dbCust.id,
@@ -297,14 +302,15 @@ export async function updateCustomerStatus(id: string, status: 'ACTIVE' | 'PAUSE
           machine_id: dbCust.machine_id,
           expiry_date: dbCust.expiry_date,
           license_key: dbCust.license_key,
-          status: status
+          status: status,
+          price: dbCust.price ?? 0
         });
         writeCustomers(list);
       }
     }
 
     const { error } = await supabase
-      .from('customers')
+      .from('photo_customers')
       .update({ status: status })
       .eq('id', id);
 
