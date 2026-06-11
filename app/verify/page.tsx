@@ -4,7 +4,7 @@ import zlib from 'zlib';
 import { 
   ShieldCheck, 
   ShieldAlert, 
-  Activity, 
+  Camera, 
   User, 
   Calendar, 
   FileText, 
@@ -135,11 +135,11 @@ export default async function VerifyPage({ searchParams }: VerifyPageProps) {
         <div className="flex items-center justify-between border-b border-zinc-800 pb-4 mb-4">
           <div className="flex items-center gap-2.5">
             <div className="h-9 w-9 rounded-lg bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center shadow-md shadow-emerald-500/5">
-              <Activity className="h-5 w-5 text-zinc-950" />
+              <Camera className="h-5 w-5 text-zinc-950" />
             </div>
             <div>
               <h1 className="text-base font-bold bg-clip-text text-transparent bg-gradient-to-r from-zinc-50 to-zinc-300">
-                Pathology LIS Portal
+                Photo Studio Suite Portal
               </h1>
               <p className="text-[9px] text-zinc-500 font-semibold tracking-wider uppercase">Document Integrity Gateway</p>
             </div>
@@ -160,9 +160,9 @@ export default async function VerifyPage({ searchParams }: VerifyPageProps) {
                 <CheckCircle2 className="h-7 w-7" />
               </div>
               <div>
-                <h2 className="text-lg font-black text-emerald-400 tracking-tight">Report Verified Successfully</h2>
+                <h2 className="text-lg font-black text-emerald-400 tracking-tight">License Sheet Verified Successfully</h2>
                 <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
-                  This diagnostic report is authentic and matches the original laboratory record. The document integrity is cryptographically validated using HMAC-SHA256 protocol.
+                  This license sheet is authentic and matches the original studio registry record. The document integrity is cryptographically validated using HMAC-SHA256 protocol.
                 </p>
                 <div className="mt-3.5 inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-mono font-extrabold text-emerald-400 rounded-lg">
                   Order No: {report.o}
@@ -182,10 +182,10 @@ export default async function VerifyPage({ searchParams }: VerifyPageProps) {
               <div>
                 <h2 className="text-lg font-black text-rose-400 tracking-tight">Verification Failed</h2>
                 <p className="text-xs text-rose-300/80 mt-1 leading-relaxed">
-                  {errorMsg || 'The digital signature is invalid. This report is either forged, tampered, or did not originate from an authorized Pathology LIS client.'}
+                  {errorMsg || 'The digital signature is invalid. This document is either forged, tampered, or did not originate from an authorized Photo Studio Suite client.'}
                 </p>
                 <p className="text-[10px] text-zinc-500 mt-3 font-semibold uppercase tracking-wider">
-                  Caution: Do not rely on printed details of unverified reports.
+                  Caution: Do not rely on details of unverified documents.
                 </p>
               </div>
             </div>
@@ -300,7 +300,7 @@ export default async function VerifyPage({ searchParams }: VerifyPageProps) {
 
         {/* Footer Audit Message */}
         <footer className="pt-8 border-t border-zinc-900 text-center text-[10px] text-zinc-650 leading-relaxed font-semibold">
-          <p>© {new Date().getFullYear()} Pathology LIS Secure Verification Portal.</p>
+          <p>© {new Date().getFullYear()} Photo Studio Suite Secure Verification Portal.</p>
           <p className="mt-1">Cryptographic hashes generated using AES-256-CBC and HMAC-SHA256 signature protocol.</p>
         </footer>
       </div>

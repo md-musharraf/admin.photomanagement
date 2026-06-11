@@ -7,7 +7,7 @@ import crypto from 'crypto';
  * Validates the admin password and sets an HTTP-only session cookie.
  */
 export async function login(password: string) {
-  const adminPassword = process.env.ADMIN_PASSWORD || 'pathologyadmin';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'photoadmin';
 
   if (password !== adminPassword) {
     return { error: 'Invalid admin credentials' };

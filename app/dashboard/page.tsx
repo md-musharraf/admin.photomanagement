@@ -16,7 +16,7 @@ import {
 } from './actions';
 import CustomerForm from './CustomerForm';
 import { 
-  Activity, 
+  Camera, 
   LogOut, 
   Plus, 
   Search, 
@@ -358,11 +358,11 @@ export default function DashboardPage() {
       <header className="sticky top-0 z-40 backdrop-blur-md bg-zinc-950/80 border-b border-zinc-800/80 px-4 sm:px-6 py-3.5 flex items-center justify-between">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/10">
-            <Activity className="h-5 w-5 sm:h-5.5 sm:w-5.5 text-white" />
+            <Camera className="h-5 w-5 sm:h-5.5 sm:w-5.5 text-white" />
           </div>
           <div>
             <h1 className="text-sm sm:text-base md:text-lg font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-zinc-50 to-zinc-300">
-              Pathology LIS Portal
+              Photo Studio Suite Portal
             </h1>
             <p className="text-[9px] sm:text-[10px] text-zinc-400 font-medium">License Registry & Administration</p>
           </div>
@@ -411,14 +411,14 @@ export default function DashboardPage() {
 
         {/* STATS PANEL (KPI Grid) */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          {/* Stat 1: Total Labs */}
+          {/* Stat 1: Total Studios */}
           <div className="backdrop-blur-md bg-zinc-900/40 border border-zinc-800/80 hover:border-indigo-500/30 rounded-2xl p-4 sm:p-5 relative overflow-hidden group shadow-lg shadow-black/40 hover:shadow-indigo-500/5 hover:-translate-y-0.5 transition-all duration-300">
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-              <Activity className="h-20 w-20 text-zinc-100" />
+              <Camera className="h-20 w-20 text-zinc-100" />
             </div>
-            <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-zinc-400">Total Registered Labs</p>
+            <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-zinc-400">Total Registered Studios</p>
             <p className="text-2xl sm:text-3xl font-extrabold mt-2 text-zinc-100">{totalLabs}</p>
-            <div className="mt-2 text-[10px] text-zinc-500 font-medium">Global active pathology clients</div>
+            <div className="mt-2 text-[10px] text-zinc-500 font-medium">Global active studio clients</div>
           </div>
 
           {/* Stat 2: Active */}
@@ -459,7 +459,7 @@ export default function DashboardPage() {
             className={`pb-3 text-sm font-bold transition-all relative flex items-center gap-2 cursor-pointer whitespace-nowrap ${activePanel === 'labs' ? 'text-indigo-400 font-extrabold' : 'text-zinc-400 hover:text-zinc-200'}`}
           >
             <Cpu className="h-4 w-4" />
-            Registered Laboratories
+            Registered Photo Studios
             {activePanel === 'labs' && (
               <div className="absolute bottom-0 inset-x-0 h-0.5 bg-indigo-500" />
             )}
@@ -486,7 +486,7 @@ export default function DashboardPage() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by Lab Name, Owner, Phone or Machine ID..."
+                  placeholder="Search by Studio Name, Owner, Phone or Machine ID..."
                   className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/45 rounded-xl py-2.5 pl-10 pr-4 outline-none text-zinc-100 placeholder-zinc-650 transition-all text-sm shadow-inner hover:border-zinc-700"
                 />
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -532,7 +532,7 @@ export default function DashboardPage() {
                 <div className="p-16 text-center text-zinc-500 flex flex-col items-center justify-center gap-2">
                   <ShieldAlert className="h-10 w-10 text-zinc-650" />
                   <p className="font-bold text-zinc-400">No Customers Found</p>
-                  <p className="text-xs">Adjust filters or search parameters, or register a new laboratory client.</p>
+                  <p className="text-xs">Adjust filters or search parameters, or register a new studio client.</p>
                 </div>
               ) : (
                 <>
@@ -541,7 +541,7 @@ export default function DashboardPage() {
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="border-b border-zinc-800/60 bg-zinc-900/10 text-zinc-400 text-[11px] font-bold uppercase tracking-wider">
-                          <th className="py-4 px-6 min-w-[200px]">Laboratory & Owner</th>
+                          <th className="py-4 px-6 min-w-[200px]">Studio & Owner</th>
                           <th className="py-4 px-6 min-w-[140px]">Contact Phone</th>
                           <th className="py-4 px-6 min-w-[170px]">Machine ID</th>
                           <th className="py-4 px-6 min-w-[170px]">Expiry & Access Status</th>
@@ -859,7 +859,7 @@ export default function DashboardPage() {
                 Push Online Release
               </h2>
               <p className="text-xs text-zinc-400 mb-6 leading-relaxed">
-                Publishing an update will alert all LIS client applications as soon as they connect to the internet.
+                Publishing an update will alert all Passport Photo Generator client applications as soon as they connect to the internet.
               </p>
 
               <form onSubmit={handlePushUpdate} className="space-y-4">
@@ -888,7 +888,7 @@ export default function DashboardPage() {
                     value={updateTitle}
                     onChange={(e) => setUpdateTitle(e.target.value)}
                     onKeyDown={(e) => handleInputKeyDown(e, 'updateNotes')}
-                    placeholder="e.g. NABL Compliance Pack & Auto-Formula Updates"
+                    placeholder="e.g. A4 Auto-Grid Centering & Print Settings Pack"
                     className="w-full bg-zinc-950/80 border border-zinc-800 focus:border-cyan-500/80 focus:ring-1 focus:ring-cyan-500/40 rounded-xl py-2.5 px-3.5 outline-none text-zinc-100 text-sm placeholder-zinc-650 transition-all"
                   />
                 </div>
@@ -902,7 +902,7 @@ export default function DashboardPage() {
                     rows={4}
                     value={updateNotes}
                     onChange={(e) => setUpdateNotes(e.target.value)}
-                    placeholder="1. Enter key jump shortcut&#10;2. MCV/MCH calculations auto-evaluated&#10;3. Premium layout margin adjustments"
+                    placeholder="1. A4 Borderless Margin options&#10;2. Dynamic grid calculation optimizations&#10;3. Premium custom size preset additions"
                     className="w-full bg-zinc-950/80 border border-zinc-800 focus:border-cyan-500/80 focus:ring-1 focus:ring-cyan-500/40 rounded-xl py-2.5 px-3.5 outline-none text-zinc-100 text-sm placeholder-zinc-650 transition-all font-sans"
                   />
                 </div>
@@ -923,7 +923,7 @@ export default function DashboardPage() {
                           handlePushUpdate(e);
                         }
                       }}
-                      placeholder="https://example.com/downloads/lis-setup.exe"
+                      placeholder="https://example.com/downloads/photo-generator-setup.exe"
                       className="w-full bg-zinc-950/80 border border-zinc-800 focus:border-cyan-500/80 focus:ring-1 focus:ring-cyan-500/40 rounded-xl py-2.5 pl-9 pr-4 outline-none text-zinc-100 text-sm placeholder-zinc-650 transition-all"
                     />
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -1056,7 +1056,7 @@ export default function DashboardPage() {
             </h3>
             <p className="text-sm text-zinc-400 leading-relaxed">
               Are you sure you want to renew the license for <span className="font-bold text-zinc-200">{renewConfirmId.lab_name}</span>? 
-              This will extend the expiration date by <span className="text-emerald-400 font-bold">1 year</span> from today and cryptographically generate a new LIS license key.
+              This will extend the expiration date by <span className="text-emerald-400 font-bold">1 year</span> from today and cryptographically generate a new license key.
             </p>
             <div className="mt-6 flex gap-3">
               <button
@@ -1117,7 +1117,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between pb-4 border-b border-zinc-850 mb-5">
               <h3 className="text-base font-bold text-zinc-100 flex items-center gap-2">
                 <ShieldCheck className="h-5 w-5 text-indigo-400" />
-                LIS Cryptographic Audit
+                Studio Cryptographic Audit
               </h3>
               <button 
                 onClick={() => setVerifyKeyData(null)}
@@ -1159,7 +1159,7 @@ export default function DashboardPage() {
 
                 <div className="space-y-3.5 bg-zinc-950 p-4 rounded-2xl border border-zinc-850 text-xs">
                   <div>
-                    <div className="text-[10px] text-zinc-500 font-semibold uppercase tracking-wider mb-1">Target Lab</div>
+                    <div className="text-[10px] text-zinc-500 font-semibold uppercase tracking-wider mb-1">Target Studio</div>
                     <div className="font-bold text-zinc-200">{verifyKeyData.customer.lab_name}</div>
                             <div className="border-t border-zinc-900 pt-3">
                     <div className="text-[10px] text-zinc-500 font-semibold uppercase tracking-wider mb-1.5 flex items-center justify-between">

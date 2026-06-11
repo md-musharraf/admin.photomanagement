@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { createCustomer } from './actions';
-import { X, Plus, Activity, User, Phone, Cpu, Calendar, AlertTriangle } from 'lucide-react';
+import { X, Plus, Camera, User, Phone, Cpu, Calendar, AlertTriangle } from 'lucide-react';
 
 interface CustomerFormProps {
   isOpen: boolean;
@@ -15,7 +15,7 @@ export default function CustomerForm({ isOpen, onClose, onSuccess }: CustomerFor
   const [ownerName, setOwnerName] = useState('');
   const [phone, setPhone] = useState('');
   const [machineId, setMachineId] = useState('');
-  const [planDuration, setPlanDuration] = useState('1 Year');
+  const [planDuration, setPlanDuration] = useState('7 Days (Trial)');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -92,10 +92,10 @@ export default function CustomerForm({ isOpen, onClose, onSuccess }: CustomerFor
             <div>
               <h2 className="text-xl font-bold text-zinc-100 flex items-center gap-2">
                 <Plus className="h-5 w-5 text-indigo-400" />
-                Register New Lab
+                Register New Studio
               </h2>
               <p className="text-xs text-zinc-400 mt-1">
-                Enter details to auto-generate LIS license key
+                Enter details to auto-generate license key
               </p>
             </div>
             <button 
@@ -110,8 +110,8 @@ export default function CustomerForm({ isOpen, onClose, onSuccess }: CustomerFor
             {/* Lab Name */}
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2 flex items-center gap-1.5">
-                <Activity className="h-3.5 w-3.5 text-indigo-400" />
-                Laboratory Name
+                <Camera className="h-3.5 w-3.5 text-indigo-400" />
+                Studio / Business Name
               </label>
               <input
                 id="labName"
@@ -119,7 +119,7 @@ export default function CustomerForm({ isOpen, onClose, onSuccess }: CustomerFor
                 value={labName}
                 onChange={(e) => setLabName(e.target.value)}
                 onKeyDown={(e) => handleKeyDown(e, 'ownerName')}
-                placeholder="e.g. Apex Diagnostics Lab"
+                placeholder="e.g. Apex Digital Photo Studio"
                 className="w-full bg-zinc-900/50 border border-zinc-800/80 hover:border-zinc-700 focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/30 rounded-xl py-2.5 px-3.5 outline-none text-zinc-100 text-sm placeholder-zinc-600 transition-all"
                 disabled={loading}
               />
@@ -129,7 +129,7 @@ export default function CustomerForm({ isOpen, onClose, onSuccess }: CustomerFor
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2 flex items-center gap-1.5">
                 <User className="h-3.5 w-3.5 text-indigo-400" />
-                Lab Director / Owner
+                Studio Director / Owner
               </label>
               <input
                 id="ownerName"
@@ -137,7 +137,7 @@ export default function CustomerForm({ isOpen, onClose, onSuccess }: CustomerFor
                 value={ownerName}
                 onChange={(e) => setOwnerName(e.target.value)}
                 onKeyDown={(e) => handleKeyDown(e, 'phone')}
-                placeholder="e.g. Dr. Sarah Connor"
+                placeholder="e.g. Sarah Connor"
                 className="w-full bg-zinc-900/50 border border-zinc-800/80 hover:border-zinc-700 focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/30 rounded-xl py-2.5 px-3.5 outline-none text-zinc-100 text-sm placeholder-zinc-600 transition-all"
                 disabled={loading}
               />
@@ -198,6 +198,7 @@ export default function CustomerForm({ isOpen, onClose, onSuccess }: CustomerFor
                 className="w-full bg-zinc-900/50 border border-zinc-800/80 hover:border-zinc-700 focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/30 rounded-xl py-2.5 px-3.5 outline-none text-zinc-100 text-sm transition-all"
                 disabled={loading}
               >
+                <option value="7 Days (Trial)">7 Days (Trial)</option>
                 <option value="1 Month">1 Month</option>
                 <option value="6 Months">6 Months</option>
                 <option value="1 Year">1 Year (Standard)</option>

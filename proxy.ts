@@ -26,7 +26,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const adminPassword = process.env.ADMIN_PASSWORD || 'pathologyadmin';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'photoadmin';
   const expectedToken = await getExpectedToken(adminPassword);
 
   const session = request.cookies.get('admin_session')?.value;

@@ -109,7 +109,9 @@ export async function createCustomer(formData: {
   }
 
   const expiry = new Date();
-  if (planDuration === '1 Month') {
+  if (planDuration === '7 Days (Trial)') {
+    expiry.setDate(expiry.getDate() + 7);
+  } else if (planDuration === '1 Month') {
     expiry.setMonth(expiry.getMonth() + 1);
   } else if (planDuration === '6 Months') {
     expiry.setMonth(expiry.getMonth() + 6);

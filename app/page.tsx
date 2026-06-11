@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { login } from './actions';
-import { Lock, Activity, ShieldAlert, ArrowRight, ServerCrash } from 'lucide-react';
+import { Lock, Camera, ShieldAlert, ArrowRight, ServerCrash } from 'lucide-react';
 
 export default function LoginPage() {
   const [password, setPassword] = useState('');
@@ -55,10 +55,10 @@ export default function LoginPage() {
         {/* Brand/Logo Section */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-gradient-to-tr from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 shadow-lg shadow-emerald-500/5 mb-4 animate-pulse">
-            <Activity className="h-8 w-8 text-emerald-400" />
+            <Camera className="h-8 w-8 text-emerald-400" />
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 via-cyan-300 to-indigo-400">
-            Pathology LIS
+            Photo Studio Suite
           </h1>
           <p className="text-sm text-zinc-400 mt-2 font-medium">
             Secure License Administrator Gateway

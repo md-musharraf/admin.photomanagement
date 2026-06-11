@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Pathology LIS Portal — License Administration",
-  description: "Admin dashboard for managing Pathology Laboratory Information System (LIS) license keys, customer registration, and subscription management.",
+  title: "Photo Studio Suite — License Administration",
+  description: "Admin dashboard for managing Photo Studio Suite / Passport Photo Generator license keys, customer registration, and subscription management.",
 };
 
 export default function RootLayout({
