@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase
       .from('photo_customers')
       .select('*')
-      .eq('machine_id', machineId)
+      .ilike('machine_id', machineId)
       .maybeSingle();
 
     if (error) {
