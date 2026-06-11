@@ -62,10 +62,21 @@ export async function fetchCustomers() {
     const sorted = [...list].sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
-    return { success: true, data: sorted, isDemo: true };
+    return { success: true, data: sorted, isDemo: true, isStatusColumnMissing: false };
   }
 
   try {
+    // Check if status column exists in Supabase photo_customers table
+    let isStatusColumnMissing = false;
+    const { error: testError } = await supabase
+      .from('photo_customers')
+      .select('status')
+      .limit(1);
+    
+    if (testError && (testError.message.includes('column') || testError.message.includes('status') || testError.message.includes('does not exist'))) {
+      isStatusColumnMissing = true;
+    }
+
     const { data, error } = await supabase
       .from('photo_customers')
       .select('*')
@@ -87,7 +98,7 @@ export async function fetchCustomers() {
       };
     }) as Customer[];
 
-    return { success: true, data: mapped, isDemo: false };
+    return { success: true, data: mapped, isDemo: false, isStatusColumnMissing };
   } catch (err: any) {
     console.error('Error fetching customers:', err);
     return { error: err.message || 'An unexpected error occurred' };
@@ -316,12 +327,6 @@ export async function updateCustomerStatus(id: string, status: 'ACTIVE' | 'PAUSE
 
     if (error) {
       console.error('Supabase error updating status:', error);
-      // Suppress missing column error as we have saved it locally in fileDb successfully
-      if (error.message.includes('column') || error.message.includes('status') || error.message.includes('does not exist')) {
-        console.warn('Supabase customers table lacks status column. Saving status locally in fileDb fallback instead.');
-        revalidatePath('/dashboard');
-        return { success: true, warning: 'Lacks database column, updated locally', isDemo: false };
-      }
       return { error: error.message };
     }
 

@@ -55,6 +55,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDemo, setIsDemo] = useState(false);
+  const [statusColumnMissing, setStatusColumnMissing] = useState(false);
   const router = useRouter();
 
   // Search & Filter state
@@ -110,6 +111,7 @@ export default function DashboardPage() {
         setError(res.error);
       } else if (res.data) {
         setCustomers(res.data);
+        setStatusColumnMissing(res.isStatusColumnMissing || false);
       }
 
       const updatesRes = await fetchSoftwareUpdates();
@@ -406,6 +408,22 @@ export default function DashboardPage() {
             <div>
               <span className="font-bold">Database Fallback Activated: </span>
               The portal is using a secure local file database (`customers_db.json` & `updates_db.json`) because Supabase credentials are in template mode. Remote status API check and pushes are fully operational!
+            </div>
+          </div>
+        )}
+
+        {/* Banner Alert for Missing Status Column */}
+        {statusColumnMissing && (
+          <div className="p-4 bg-rose-500/5 border border-rose-500/25 rounded-2xl flex items-start gap-3 text-rose-300 text-sm font-medium leading-relaxed animate-fadeIn">
+            <AlertTriangle className="h-5 w-5 shrink-0 text-rose-400 mt-0.5" />
+            <div>
+              <span className="font-bold">Supabase Schema Out of Sync: </span>
+              The <code>status</code> column is missing in your Supabase <code>photo_customers</code> table. 
+              Pausing or stopping licenses will not sync to client devices. 
+              Go to your Supabase SQL Editor and run the following query to fix this:
+              <pre className="mt-2 p-3 bg-zinc-950 border border-zinc-850 rounded-xl font-mono text-xs text-rose-400 select-all overflow-x-auto">
+                ALTER TABLE photo_customers ADD COLUMN status TEXT DEFAULT 'ACTIVE';
+              </pre>
             </div>
           </div>
         )}

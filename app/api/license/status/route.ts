@@ -52,13 +52,8 @@ export async function GET(request: NextRequest) {
     }
 
     if (data) {
-      // If Supabase table doesn't have status, check local fileDb as a fallback
-      let status = data.status;
-      if (!status) {
-        const fileList = readCustomers();
-        const fileCust = fileList.find(c => c.machine_id.trim().toLowerCase() === machineId.trim().toLowerCase());
-        status = fileCust?.status || 'ACTIVE';
-      }
+      // Direct status check from Supabase data, defaulting to 'ACTIVE' if missing
+      const status = data.status || 'ACTIVE';
 
       return NextResponse.json({
         success: true,
