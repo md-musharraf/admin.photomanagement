@@ -1,6 +1,17 @@
 import fs from 'fs';
 import path from 'path';
-import { Customer } from '../app/dashboard/actions';
+export interface Customer {
+  id: string;
+  created_at: string;
+  lab_name: string;
+  owner_name: string;
+  phone: string;
+  machine_id: string;
+  expiry_date: string;
+  license_key: string;
+  status: string; // 'ACTIVE' | 'PAUSED' | 'STOPPED'
+  price?: number;
+}
 
 export interface SoftwareUpdate {
   version: string;

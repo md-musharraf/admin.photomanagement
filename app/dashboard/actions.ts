@@ -3,20 +3,7 @@
 import { supabase } from '@/lib/supabaseClient';
 import { encrypt, decrypt } from '@/lib/keygen';
 import { revalidatePath } from 'next/cache';
-import { readCustomers, writeCustomers, readUpdates, writeUpdates, SoftwareUpdate } from '@/lib/fileDb';
-
-export interface Customer {
-  id: string;
-  created_at: string;
-  lab_name: string;
-  owner_name: string;
-  phone: string;
-  machine_id: string;
-  expiry_date: string;
-  license_key: string;
-  status: string; // 'ACTIVE' | 'PAUSED' | 'STOPPED'
-  price?: number;
-}
+import { readCustomers, writeCustomers, readUpdates, writeUpdates, SoftwareUpdate, Customer } from '@/lib/fileDb';
 
 // Check if we are running in demo mode with dummy credentials
 const isDemoMode =
@@ -97,6 +84,11 @@ export async function fetchCustomers() {
         price: c.price ?? fileCust?.price ?? 0
       };
     }) as Customer[];
+
+    // Sync remote data to the offline local file db
+    if (mapped.length > 0) {
+      writeCustomers(mapped);
+    }
 
     return { success: true, data: mapped, isDemo: false, isStatusColumnMissing };
   } catch (err: any) {
@@ -397,3 +389,44 @@ export async function fetchSoftwareUpdates() {
     return { error: err.message || 'Failed to fetch updates' };
   }
 }
+
+/**
+ * Generates a cryptographically signed verification link containing the license/customer data payload.
+ */
+export async function generateVerificationLink(customer: Customer) {
+  try {
+    const crypto = await import('crypto');
+    const zlib = await import('zlib');
+
+    const SECRET_SALT = process.env.LICENSE_SECRET_SALT || 'Musharraf_709121SaltKey';
+
+    // Build the compacted license report payload
+    const report = {
+      id: customer.id,
+      l: customer.lab_name,
+      o: customer.owner_name,
+      p: customer.phone,
+      m: customer.machine_id,
+      e: customer.expiry_date,
+      k: customer.license_key,
+      s: customer.status,
+      pr: customer.price
+    };
+
+    const jsonStr = JSON.stringify(report);
+    // Compress string and format as base64
+    const compressed = zlib.deflateSync(Buffer.from(jsonStr, 'utf8'));
+    const p = compressed.toString('base64');
+
+    // Create HMAC-SHA256 signature and take the first 16 characters
+    const signatureFull = crypto.createHmac('sha256', SECRET_SALT).update(p).digest('hex');
+    const s = signatureFull.substring(0, 16);
+
+    // Return the query parameters
+    return { success: true, queryParams: `?p=${encodeURIComponent(p)}&s=${encodeURIComponent(s)}` };
+  } catch (err: any) {
+    console.error('Failed to generate verification link:', err);
+    return { error: err.message || 'Verification link generation failed' };
+  }
+}
+

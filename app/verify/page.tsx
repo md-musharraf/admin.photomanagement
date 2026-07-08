@@ -7,12 +7,14 @@ import {
   Camera, 
   User, 
   Calendar, 
-  FileText, 
   CheckCircle2, 
   AlertTriangle, 
   Building, 
   Phone, 
-  FileSpreadsheet 
+  Cpu, 
+  Key,
+  IndianRupee,
+  Activity
 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -24,69 +26,16 @@ interface VerifyPageProps {
   }>;
 }
 
-interface DecodedReport {
-  o: string; // orderNo
-  n: string; // patientName
-  a: string; // age
-  g: string; // gender
-  d: string; // date
-  l: string; // labName
-  r: string; // approvedBy
-  t: Array<{
-    n: string; // testName
-    p: Array<{
-      n: string; // parameterName
-      v: string; // value
-      u?: string; // unit (optional now)
-      r?: string; // refRange (optional now)
-      f: string | null; // flag
-    }>;
-  }>;
-}
-
-function expandMedicalName(name: string): string {
-  const map: Record<string, string> = {
-    'CBC': 'Complete Blood Count (CBC)',
-    'LFT': 'Liver Function Test (LFT)',
-    'RFT': 'Renal Function Test (RFT)',
-    'Thyroid': 'Thyroid Profile',
-    'Lipid': 'Lipid Profile',
-    'Hb': 'Hemoglobin (Hb)',
-    'RBC': 'Erythrocyte (RBC) Count',
-    'PCV': 'Packed Cell Volume (PCV)',
-    'WBC': 'Total Leucocytes (WBC) Count',
-    'MCV': 'Mean Cell Volume (MCV)',
-    'MCH': 'Mean Cell Haemoglobin (MCH)',
-    'MCHC': 'Mean Corpuscular Hb Concn. (MCHC)',
-    'RDW': 'Red Cell Distribution Width (RDW)',
-    'DLC': 'Differential Leucocyte Count (DLC)',
-    'Platelets': 'Platelet Count',
-    'Neutro': 'Neutrophils',
-    'Lympho': 'Lymphocytes',
-    'Mono': 'Monocytes',
-    'Eosino': 'Eosinophils',
-    'Baso': 'Basophils',
-    'Sugar Fasting': 'Blood Sugar (Fasting)',
-    'Sugar PP': 'Blood Sugar (PP)',
-    'Sugar': 'Blood Sugar',
-    'HbA1c': 'HbA1c (Glycated Hemoglobin)',
-    'eAG': 'Estimated Avg Glucose',
-    'Creatinine': 'Serum Creatinine',
-    'Urea': 'Blood Urea',
-    'Sodium': 'Sodium (Na+)',
-    'Potassium': 'Potassium (K+)',
-    'Chloride': 'Chloride (Cl-)',
-    'Cholesterol': 'Total Cholesterol',
-    'ALP': 'Alkaline Phosphatase',
-    'Bilirubin Total': 'Total Bilirubin',
-    'Bilirubin Direct': 'Direct Bilirubin',
-    'Bilirubin Indirect': 'Indirect Bilirubin',
-    'Protein Total': 'Total Protein',
-    'ALP Total': 'Alkaline Phosphatase',
-    'T3': 'T3 (Triiodothyronine)',
-    'T4': 'T4 (Thyroxine)'
-  };
-  return map[name] || name;
+interface DecodedLicense {
+  id: string;
+  l: string; // lab_name
+  o: string; // owner_name
+  p: string; // phone
+  m: string; // machine_id
+  e: string; // expiry_date
+  k: string; // license_key
+  s: string; // status
+  pr?: number; // price
 }
 
 export default async function VerifyPage({ searchParams }: VerifyPageProps) {
@@ -97,7 +46,7 @@ export default async function VerifyPage({ searchParams }: VerifyPageProps) {
   const SECRET_SALT = process.env.LICENSE_SECRET_SALT || 'Musharraf_709121SaltKey';
 
   let isValid = false;
-  let report: DecodedReport | null = null;
+  let license: DecodedLicense | null = null;
   let errorMsg = '';
 
   if (!p || !s) {
@@ -114,34 +63,34 @@ export default async function VerifyPage({ searchParams }: VerifyPageProps) {
         const buffer = Buffer.from(p, 'base64');
         const decompressed = zlib.inflateSync(buffer);
         const jsonStr = decompressed.toString('utf8');
-        report = JSON.parse(jsonStr);
+        license = JSON.parse(jsonStr);
       } else {
         errorMsg = 'Digital signature mismatch. This document has been tampered with or is fake.';
       }
     } catch (e: any) {
       isValid = false;
-      errorMsg = 'Failed to decode report payload. Mismatched structures.';
+      errorMsg = 'Failed to decode license payload. Mismatched structures.';
     }
   }
 
   return (
     <div className="relative min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans overflow-x-hidden p-4 md:p-8">
       {/* Background Glowing Blurs */}
-      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[450px] h-[450px] rounded-full bg-indigo-500/5 blur-[150px] pointer-events-none" />
+      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-indigo-500/5 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[450px] h-[450px] rounded-full bg-violet-500/5 blur-[150px] pointer-events-none" />
 
       <div className="max-w-3xl w-full mx-auto space-y-6 z-10">
         {/* Header Branding */}
         <div className="flex items-center justify-between border-b border-zinc-800 pb-4 mb-4">
           <div className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-lg bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center shadow-md shadow-emerald-500/5">
-              <Camera className="h-5 w-5 text-zinc-950" />
+            <div className="h-9 w-9 rounded-lg bg-gradient-to-tr from-indigo-500 to-violet-600 flex items-center justify-center shadow-md shadow-indigo-500/5">
+              <Camera className="h-5 w-5 text-white" />
             </div>
             <div>
               <h1 className="text-base font-bold bg-clip-text text-transparent bg-gradient-to-r from-zinc-50 to-zinc-300">
                 Photo Studio Suite Portal
               </h1>
-              <p className="text-[9px] text-zinc-500 font-semibold tracking-wider uppercase">Document Integrity Gateway</p>
+              <p className="text-[9px] text-zinc-500 font-semibold tracking-wider uppercase">License Integrity Registry</p>
             </div>
           </div>
           <span className="text-[10px] bg-zinc-900 border border-zinc-800 text-zinc-400 px-2.5 py-1 rounded-full font-mono font-bold">
@@ -150,7 +99,7 @@ export default async function VerifyPage({ searchParams }: VerifyPageProps) {
         </div>
 
         {/* Verification Status Banner */}
-        {isValid && report ? (
+        {isValid && license ? (
           <div className="backdrop-blur-md bg-emerald-950/15 border border-emerald-500/30 rounded-3xl p-6 shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-5">
               <ShieldCheck className="h-24 w-24 text-emerald-400" />
@@ -162,16 +111,16 @@ export default async function VerifyPage({ searchParams }: VerifyPageProps) {
               <div>
                 <h2 className="text-lg font-black text-emerald-400 tracking-tight">License Sheet Verified Successfully</h2>
                 <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
-                  This license sheet is authentic and matches the original studio registry record. The document integrity is cryptographically validated using HMAC-SHA256 protocol.
+                  This license record is authentic and matches the original studio registry record. The document integrity is cryptographically validated using HMAC-SHA256 protocol.
                 </p>
                 <div className="mt-3.5 inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-mono font-extrabold text-emerald-400 rounded-lg">
-                  Order No: {report.o}
+                  License UUID: {license.id}
                 </div>
               </div>
             </div>
           </div>
         ) : (
-          <div className="backdrop-blur-md bg-rose-950/15 border border-rose-500/30 rounded-3xl p-6 shadow-xl relative overflow-hidden animate-pulse">
+          <div className="backdrop-blur-md bg-rose-950/15 border border-rose-500/30 rounded-3xl p-6 shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-5">
               <ShieldAlert className="h-24 w-24 text-rose-400" />
             </div>
@@ -182,10 +131,10 @@ export default async function VerifyPage({ searchParams }: VerifyPageProps) {
               <div>
                 <h2 className="text-lg font-black text-rose-400 tracking-tight">Verification Failed</h2>
                 <p className="text-xs text-rose-300/80 mt-1 leading-relaxed">
-                  {errorMsg || 'The digital signature is invalid. This document is either forged, tampered, or did not originate from an authorized Photo Studio Suite client.'}
+                  {errorMsg || 'The digital signature is invalid. This document is either forged, tampered, or did not originate from an authorized Photo Studio Suite administration gateway.'}
                 </p>
                 <p className="text-[10px] text-zinc-500 mt-3 font-semibold uppercase tracking-wider">
-                  Caution: Do not rely on details of unverified documents.
+                  Caution: Do not activate or license systems running on details of unverified documents.
                 </p>
               </div>
             </div>
@@ -193,107 +142,87 @@ export default async function VerifyPage({ searchParams }: VerifyPageProps) {
         )}
 
         {/* Report Details View (Only if Valid) */}
-        {isValid && report && (
+        {isValid && license && (
           <div className="space-y-6">
             {/* Metadata Summary Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Patient Details */}
+              {/* Studio Details */}
               <div className="backdrop-blur-md bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-5 space-y-3.5">
                 <h3 className="text-xs font-black uppercase tracking-wider text-zinc-400 flex items-center gap-1.5 border-b border-zinc-800/50 pb-2">
-                  <User className="h-4 w-4 text-emerald-400" />
-                  Patient Profile
+                  <Building className="h-4 w-4 text-indigo-400" />
+                  Studio Profile
                 </h3>
                 <div className="grid grid-cols-2 gap-y-2.5 text-xs">
-                  <span className="text-zinc-500 font-semibold">Patient Name:</span>
-                  <span className="text-zinc-200 font-bold">{report.n}</span>
+                  <span className="text-zinc-500 font-semibold">Studio Name:</span>
+                  <span className="text-zinc-200 font-bold">{license.l}</span>
 
-                  <span className="text-zinc-500 font-semibold">Age / Gender:</span>
-                  <span className="text-zinc-200 font-bold">{report.a} / {report.g}</span>
+                  <span className="text-zinc-500 font-semibold font-sans">Owner / Director:</span>
+                  <span className="text-zinc-200 font-bold">{license.o}</span>
 
-                  <span className="text-zinc-500 font-semibold">Report Date:</span>
-                  <span className="text-zinc-200 font-bold">{report.d}</span>
+                  <span className="text-zinc-500 font-semibold">Contact Phone:</span>
+                  <span className="text-zinc-200 font-bold">{license.p}</span>
                 </div>
               </div>
 
-              {/* Lab & Origin Details */}
+              {/* License Details */}
               <div className="backdrop-blur-md bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-5 space-y-3.5">
                 <h3 className="text-xs font-black uppercase tracking-wider text-zinc-400 flex items-center gap-1.5 border-b border-zinc-800/50 pb-2">
-                  <Building className="h-4 w-4 text-cyan-400" />
-                  Diagnostic Facility
+                  <Cpu className="h-4 w-4 text-violet-400" />
+                  Hardware & Subscription
                 </h3>
                 <div className="grid grid-cols-2 gap-y-2.5 text-xs">
-                  <span className="text-zinc-500 font-semibold">Issued By:</span>
-                  <span className="text-zinc-200 font-bold">{report.l}</span>
+                  <span className="text-zinc-500 font-semibold">Hardware Machine ID:</span>
+                  <span className="text-zinc-200 font-mono font-bold">{license.m}</span>
 
-                  <span className="text-zinc-500 font-semibold">Approved By:</span>
-                  <span className="text-zinc-200 font-bold">{report.r || 'Authorized Signature'}</span>
+                  <span className="text-zinc-500 font-semibold">Expiry Date:</span>
+                  <span className="text-zinc-200 font-bold">
+                    {new Date(license.e).toLocaleDateString(undefined, {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </span>
 
-                  <span className="text-zinc-500 font-semibold">Security Salt Status:</span>
-                  <span className="text-emerald-400 font-mono font-bold">MATCHED & SIGNED</span>
+                  <span className="text-zinc-500 font-semibold">Pricing Structure:</span>
+                  <span className="text-zinc-200 font-bold flex items-center gap-0.5">
+                    <IndianRupee className="h-3.5 w-3.5 text-emerald-400" />
+                    {(license.pr ?? 0).toLocaleString('en-IN')}
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Test Results Parameter Grid */}
-            <div className="space-y-4">
+            {/* Cryptographic License Key Audit */}
+            <div className="backdrop-blur-md bg-zinc-900/25 border border-zinc-800/80 rounded-2xl p-5 space-y-4">
               <h3 className="text-xs font-black uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
-                <FileSpreadsheet className="h-4 w-4 text-indigo-400" />
-                Verified Test Results
+                <Key className="h-4 w-4 text-cyan-400" />
+                Cryptographic Key Verification
               </h3>
+              
+              <div className="space-y-3 text-xs">
+                <div className="bg-zinc-950 border border-zinc-900 p-4 rounded-xl space-y-2">
+                  <div className="text-[10px] text-zinc-500 font-semibold uppercase tracking-wider">License Key String</div>
+                  <div className="font-mono text-zinc-300 break-all select-all">{license.k}</div>
+                </div>
 
-              {report.t.map((test, tIdx) => (
-                <div key={tIdx} className="backdrop-blur-md bg-zinc-900/25 border border-zinc-800/80 rounded-2xl overflow-hidden shadow-lg">
-                  {/* Test Header */}
-                  <div className="bg-zinc-900/60 border-b border-zinc-800/80 px-5 py-3.5">
-                    <h4 className="text-sm font-bold text-zinc-200">{expandMedicalName(test.n)}</h4>
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  <div className="bg-zinc-950/60 border border-zinc-900 p-3 rounded-xl flex items-center gap-2.5">
+                    <Activity className="h-5 w-5 text-emerald-400" />
+                    <div>
+                      <div className="text-[9px] text-zinc-500 font-semibold uppercase tracking-wider">Current Status</div>
+                      <div className="font-bold text-zinc-200">{license.s}</div>
+                    </div>
                   </div>
 
-                  {/* Parameters Table */}
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse text-xs">
-                      <thead>
-                        <tr className="border-b border-zinc-850 bg-zinc-950/20 text-zinc-500 text-[10px] font-black uppercase tracking-wider">
-                          <th className="py-2.5 px-5">Parameter</th>
-                          <th className="py-2.5 px-5">Result</th>
-                          <th className="py-2.5 px-5">Unit</th>
-                          <th className="py-2.5 px-5">Reference Range</th>
-                          <th className="py-2.5 px-5 text-right">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-zinc-900/60 font-medium">
-                        {test.p.map((p, pIdx) => {
-                          const isAbnormal = !!p.f;
-                          const isHigh = p.f === '↑' || p.f === 'H';
-                          const isLow = p.f === '↓' || p.f === 'L';
-                          const isCritical = p.f === '!!';
-
-                          return (
-                            <tr key={pIdx} className="hover:bg-zinc-900/10 transition-colors">
-                              <td className="py-3 px-5 text-zinc-300 font-semibold">{expandMedicalName(p.n)}</td>
-                              <td className={`py-3 px-5 font-bold ${isCritical || isHigh ? 'text-red-400' : isLow ? 'text-orange-400' : 'text-zinc-100'}`}>
-                                {p.v}
-                              </td>
-                              <td className="py-3 px-5 text-zinc-500">{p.u || '-'}</td>
-                              <td className="py-3 px-5 text-zinc-500">{p.r || '-'}</td>
-                              <td className="py-3 px-5 text-right">
-                                {isCritical ? (
-                                  <span className="inline-block px-2 py-0.5 rounded bg-red-500/10 border border-red-500/20 text-red-400 font-black text-[9px] uppercase tracking-wider">Critical</span>
-                                ) : isHigh ? (
-                                  <span className="inline-block px-2 py-0.5 rounded bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-[9px] uppercase tracking-wider">High</span>
-                                ) : isLow ? (
-                                  <span className="inline-block px-2 py-0.5 rounded bg-orange-500/10 border border-orange-500/20 text-orange-400 font-bold text-[9px] uppercase tracking-wider">Low</span>
-                                ) : (
-                                  <span className="inline-block px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-bold uppercase tracking-wider">Normal</span>
-                                )}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                  <div className="bg-zinc-950/60 border border-zinc-900 p-3 rounded-xl flex items-center gap-2.5">
+                    <ShieldCheck className="h-5 w-5 text-indigo-400" />
+                    <div>
+                      <div className="text-[9px] text-zinc-500 font-semibold uppercase tracking-wider">Digital Signature</div>
+                      <div className="font-mono text-emerald-400 font-bold">HMAC-SHA256 MATCHED</div>
+                    </div>
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
           </div>
         )}

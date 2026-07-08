@@ -12,8 +12,9 @@ import {
   updateCustomerStatus,
   pushSoftwareUpdate,
   fetchSoftwareUpdates,
-  Customer 
+  generateVerificationLink
 } from './actions';
+import { Customer } from '@/lib/fileDb';
 import CustomerForm from './CustomerForm';
 import { 
   Camera, 
@@ -70,6 +71,7 @@ export default function DashboardPage() {
 
   // Copy success indicator state (tracks ID of copied customer)
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedVerifyLinkId, setCopiedVerifyLinkId] = useState<string | null>(null);
 
   // Software Update Form States
   const [updateVersion, setUpdateVersion] = useState('');
@@ -293,6 +295,25 @@ export default function DashboardPage() {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleCopyVerifyLink = async (customer: Customer) => {
+    try {
+      const res = await generateVerificationLink(customer);
+      if (res.error) {
+        alert(`Failed to generate verification link: ${res.error}`);
+        return;
+      }
+      if (res.success && res.queryParams) {
+        const fullUrl = `${window.location.origin}/verify${res.queryParams}`;
+        await navigator.clipboard.writeText(fullUrl);
+        setCopiedVerifyLinkId(customer.id);
+        setTimeout(() => setCopiedVerifyLinkId(null), 2000);
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert('An unexpected error occurred while generating verification link.');
+    }
   };
 
   // Helper: check licensing status relative to current local time
@@ -662,6 +683,24 @@ export default function DashboardPage() {
                                     <ShieldCheck className="h-3 w-3" />
                                     Verify Key
                                   </button>
+
+                                  <button
+                                    onClick={() => handleCopyVerifyLink(customer)}
+                                    title="Copy Verification Link"
+                                    className="flex items-center gap-1 px-2 py-1 rounded bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/20 text-teal-400 text-[10px] font-bold transition-all cursor-pointer"
+                                  >
+                                    {copiedVerifyLinkId === customer.id ? (
+                                      <>
+                                        <Check className="h-3 w-3 text-teal-400" />
+                                        Copied Link
+                                      </>
+                                    ) : (
+                                      <>
+                                        <LinkIcon className="h-3 w-3" />
+                                        Copy Link
+                                      </>
+                                    )}
+                                  </button>
                                 </div>
                               </td>
 
@@ -817,13 +856,31 @@ export default function DashboardPage() {
                                 </button>
                               </div>
                             </div>
-                            <button
-                              onClick={() => handleVerifyKey(customer)}
-                              className="w-full flex items-center justify-center gap-1 py-1.5 rounded bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-400 text-[10px] font-bold transition-all cursor-pointer"
-                            >
-                              <ShieldCheck className="h-3 w-3" />
-                              Verify Key Integrity
-                            </button>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleVerifyKey(customer)}
+                                className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-400 text-[10px] font-bold transition-all cursor-pointer"
+                              >
+                                <ShieldCheck className="h-3 w-3" />
+                                Verify Key Integrity
+                              </button>
+                              <button
+                                onClick={() => handleCopyVerifyLink(customer)}
+                                className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/20 text-teal-400 text-[10px] font-bold transition-all cursor-pointer"
+                              >
+                                {copiedVerifyLinkId === customer.id ? (
+                                  <>
+                                    <Check className="h-3 w-3 text-teal-400" />
+                                    Copied Link
+                                  </>
+                                ) : (
+                                  <>
+                                    <LinkIcon className="h-3 w-3" />
+                                    Copy Verification Link
+                                  </>
+                                )}
+                              </button>
+                            </div>
                           </div>
 
                           {/* Actions Buttons */}
