@@ -1,24 +1,16 @@
 name: Supabase Daily Keep-Alive
 
+# Backup for the Vercel cron in vercel.json. Hits the deployed endpoint, which
+# runs a real query (no keys stored here). --fail turns a paused/broken
+# database into a red run you get emailed about.
+# Note: GitHub disables scheduled workflows after 60 days without repo commits.
 on:
   schedule:
-    # Runs at 00:00 UTC every day (5:30 AM IST)
-    - cron: '0 0 * * *'
+    - cron: '0 0 * * *' # 05:30 IST
   workflow_dispatch:
 
 jobs:
-  ping-supabase:
+  ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Supabase REST API & Auth Services
-        run: |
-          SUPABASE_URL="https://lcjuaimfowitnollrath.supabase.co"
-          ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxjanVhaW1mb3dpdG5vbGxyYXRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyOTA4MTIsImV4cCI6MjA5NTg2NjgxMn0.H6pdLGHUMrQD7RdKW7uiFByAXi1i6L2opCAeDnrrE-8"
-
-          echo "Pinging Supabase REST API..."
-          curl -s -o /dev/null -w "%{http_code}\n" -H "apikey: ${ANON_KEY}" -H "Authorization: Bearer ${ANON_KEY}" "${SUPABASE_URL}/rest/v1/"
-
-          echo "Pinging Supabase Auth Health..."
-          curl -s -o /dev/null -w "%{http_code}\n" -H "apikey: ${ANON_KEY}" "${SUPABASE_URL}/auth/v1/health"
-
-          echo "Supabase Keep-Alive Ping Completed Successfully!"
+      - run: curl --fail --silent --show-error --retry 3 --retry-delay 20 https://adminphotomanagement.vercel.app/api/cron/keep-alive

@@ -1,54 +1,36 @@
 import crypto from 'crypto';
 
-const SALT = process.env.LICENSE_SECRET_SALT || 'Musharraf_709121SaltKey';
+// Ed25519 licence signing. The private key lives only in this server's env
+// (LICENSE_PRIVATE_KEY, base64 PKCS#8 DER); the desktop app ships just the
+// public key, so keys can no longer be minted from the app's own code.
+// Format must match passport-size-photo/electron/license.js:
+//   base64url("machineId|expiryISO") + "." + base64url(signature)
 
-// Derive a 32-byte key from the salt key using SHA-256
-const KEY = crypto.createHash('sha256').update(SALT).digest();
-
-/**
- * Encrypts the payload "MACHINE_ID|EXPIRATION_DATE" using AES-256-CBC.
- * Returns a unified uppercase hex string containing the IV and the encrypted payload.
- */
-export function encrypt(machineId: string, expirationDate: string): string {
-  const payload = `${machineId}|${expirationDate}`;
-  const iv = crypto.randomBytes(16); // 16 bytes = 128 bits IV
-  
-  const cipher = crypto.createCipheriv('aes-256-cbc', KEY, iv);
-  let encrypted = cipher.update(payload, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-  
-  // Prepend IV (32 hex characters) to the ciphertext
-  const licenseKey = iv.toString('hex') + encrypted;
-  return licenseKey.toUpperCase();
+let cached: crypto.KeyObject | null = null;
+function privateKey(): crypto.KeyObject {
+  if (cached) return cached;
+  const b64 = process.env.LICENSE_PRIVATE_KEY;
+  if (!b64) throw new Error('LICENSE_PRIVATE_KEY is not set');
+  cached = crypto.createPrivateKey({ key: Buffer.from(b64, 'base64'), format: 'der', type: 'pkcs8' });
+  return cached;
 }
 
-/**
- * Decrypts a license key string and returns the machine ID and expiration date.
- */
-export function decrypt(licenseKey: string): { machineId: string; expirationDate: string } {
-  const cleanKey = licenseKey.trim().toLowerCase();
-  
-  // An IV in hex is 32 characters. License key must be at least that + some ciphertext.
-  if (cleanKey.length <= 32) {
-    throw new Error('Invalid license key format');
+const norm = (s: string) => s.trim().toLowerCase();
+
+export function signLicense(machineId: string, expirationDate: string): string {
+  const payload = Buffer.from(`${norm(machineId)}|${expirationDate}`);
+  return `${payload.toString('base64url')}.${crypto.sign(null, payload, privateKey()).toString('base64url')}`;
+}
+
+export function verifyLicense(licenseKey: string): { machineId: string; expirationDate: string } {
+  const [p, s] = licenseKey.trim().split('.');
+  if (!p || !s) throw new Error('Invalid license key format');
+  const payload = Buffer.from(p, 'base64url');
+  if (!crypto.verify(null, payload, crypto.createPublicKey(privateKey()), Buffer.from(s, 'base64url'))) {
+    throw new Error('License key signature is invalid');
   }
-  
-  const ivHex = cleanKey.substring(0, 32);
-  const encryptedHex = cleanKey.substring(32);
-  
-  const iv = Buffer.from(ivHex, 'hex');
-  const decipher = crypto.createDecipheriv('aes-256-cbc', KEY, iv);
-  
-  let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
-  decrypted += decipher.final('utf8');
-  
-  const parts = decrypted.split('|');
-  if (parts.length < 2) {
-    throw new Error('Decrypted payload does not contain separator');
-  }
-  
-  return {
-    machineId: parts[0],
-    expirationDate: parts.slice(1).join('|'), // In case machine ID contains |
-  };
+  const text = payload.toString('utf8');
+  const bar = text.indexOf('|');
+  if (bar < 1) throw new Error('Invalid license key payload');
+  return { machineId: text.slice(0, bar), expirationDate: text.slice(bar + 1) };
 }

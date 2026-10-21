@@ -1222,7 +1222,7 @@ export default function DashboardPage() {
               <div className="py-12 flex flex-col items-center justify-center gap-4">
                 <div className="h-10 w-10 border-4 border-indigo-400 border-t-transparent rounded-full animate-spin" />
                 <div className="text-xs font-semibold text-indigo-400 uppercase tracking-widest animate-pulse">
-                  Decoding AES-256-CBC...
+                  Verifying Ed25519 signature...
                 </div>
               </div>
             ) : verifyKeyData.error ? (
@@ -1235,7 +1235,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <p className="text-xs text-zinc-500 leading-relaxed">
-                  The license key could not be decrypted. This indicates tampering, key corruption, or mismatch with the shared secret salt key.
+                  The license key signature is invalid. This indicates tampering, key corruption, or a key from the old format.
                 </p>
               </div>
             ) : verifyKeyData.decryptedData ? (
@@ -1315,7 +1315,7 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="text-[10px] text-zinc-500 leading-relaxed font-medium">
-                  Verification verified that the AES-256-CBC payload contained in the key parses to matching variables. The salt key was successfully validated against the input string.
+                  The Ed25519 signature is valid and the key payload parses to matching variables.
                 </div>
               </div>
             ) : null}

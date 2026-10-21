@@ -2,19 +2,21 @@
 
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
+import { sessionToken } from '@/lib/auth';
 
 /**
  * Validates the admin password and sets an HTTP-only session cookie.
  */
 export async function login(password: string) {
-  const adminPassword = process.env.ADMIN_PASSWORD || 'photoadmin';
-
-  if (password !== adminPassword) {
+  // Fail closed: no silent 'photoadmin' fallback when the env var is missing.
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  const given = Buffer.from(String(password));
+  const expected = Buffer.from(adminPassword ?? '');
+  if (!adminPassword || given.length !== expected.length || !crypto.timingSafeEqual(given, expected)) {
     return { error: 'Invalid admin credentials' };
   }
 
-  // Generate SHA-256 hash of the password as the session token
-  const token = crypto.createHash('sha256').update(adminPassword).digest('hex');
+  const token = sessionToken(adminPassword);
 
   const cookieStore = await cookies();
   cookieStore.set('admin_session', token, {
