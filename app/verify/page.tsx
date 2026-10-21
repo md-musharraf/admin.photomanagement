@@ -230,7 +230,7 @@ export default async function VerifyPage({ searchParams }: VerifyPageProps) {
         {/* Footer Audit Message */}
         <footer className="pt-8 border-t border-zinc-900 text-center text-[10px] text-zinc-650 leading-relaxed font-semibold">
           <p>© {new Date().getFullYear()} Photo Studio Suite Secure Verification Portal.</p>
-          <p className="mt-1">Cryptographic hashes generated using AES-256-CBC and HMAC-SHA256 signature protocol.</p>
+          <p className="mt-1">Cryptographic hashes generated using Ed25519 licence keys and HMAC-SHA256 report signatures.</p>
         </footer>
       </div>
     </div>

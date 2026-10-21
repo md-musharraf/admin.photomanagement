@@ -2,76 +2,13 @@ import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabaseClient';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
-export async function GET(request: Request) {
-  const startTime = Date.now();
-  const results: Record<string, any> = {};
-
-  try {
-    // 1. Ping Supabase Client Database Table
-    const { data: dbData, error: dbError } = await supabase
-      .from('licenses')
-      .select('count', { count: 'exact', head: true });
-
-    results.supabaseClient = {
-      success: !dbError,
-      error: dbError ? dbError.message : null,
-    };
-
-    // 2. Direct HTTP Ping to Supabase REST API
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://lcjuaimfowitnollrath.supabase.co';
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (supabaseUrl && anonKey) {
-      const restRes = await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/`, {
-        headers: {
-          apikey: anonKey,
-          Authorization: `Bearer ${anonKey}`,
-        },
-        cache: 'no-store',
-      });
-      results.supabaseRestApi = {
-        status: restRes.status,
-        ok: restRes.ok,
-      };
-
-      // 3. Direct HTTP Ping to Supabase Auth API
-      const authRes = await fetch(`${supabaseUrl.replace(/\/$/, '')}/auth/v1/health`, {
-        headers: {
-          apikey: anonKey,
-        },
-        cache: 'no-store',
-      });
-      results.supabaseAuthHealth = {
-        status: authRes.status,
-        ok: authRes.ok,
-      };
-    }
-
-    const duration = Date.now() - startTime;
-
-    return NextResponse.json({
-      success: true,
-      timestamp: new Date().toISOString(),
-      executionTimeMs: duration,
-      project: 'admin_dashboard_photo',
-      message: 'Supabase keep-alive ping executed successfully. Server will remain active.',
-      details: results,
-    });
-  } catch (error: any) {
-    return NextResponse.json(
-      {
-        success: false,
-        timestamp: new Date().toISOString(),
-        error: error?.message || String(error),
-        details: results,
-      },
-      { status: 500 }
-    );
-  }
-}
-
-export async function POST(request: Request) {
-  return GET(request);
+// Supabase pauses free projects after 7 days without database activity, so run
+// one real query on this app's own table. Returns 500 when it fails: the old
+// route answered success:true even on a DB error, so nothing could ever alert.
+// Called daily by Vercel cron (vercel.json) and the GitHub workflow as backup.
+export async function GET() {
+  const { error } = await supabase.from('photo_customers').select('id', { count: 'exact', head: true });
+  if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+  return NextResponse.json({ ok: true, at: new Date().toISOString() });
 }

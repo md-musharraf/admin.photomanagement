@@ -128,7 +128,7 @@ export default function LoginPage() {
         {/* Footer info */}
         <div className="text-center mt-8 text-xs text-zinc-600 flex items-center justify-center gap-1.5 font-medium">
           <ServerCrash className="h-3.5 w-3.5" />
-          AES-256-CBC Encrypted License Key Protocol
+          Ed25519 Signed License Key Protocol
         </div>
       </div>
     </div>

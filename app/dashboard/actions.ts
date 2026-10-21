@@ -1,7 +1,8 @@
 'use server';
 
 import { supabase } from '@/lib/supabaseClient';
-import { encrypt, decrypt } from '@/lib/keygen';
+import { signLicense, verifyLicense } from '@/lib/keygen';
+import { requireAdmin } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { readCustomers, writeCustomers, readUpdates, writeUpdates, SoftwareUpdate, Customer } from '@/lib/fileDb';
 
@@ -18,7 +19,7 @@ try {
   let updated = false;
   current.forEach((c) => {
     if (!c.license_key) {
-      c.license_key = encrypt(c.machine_id, c.expiry_date);
+      c.license_key = signLicense(c.machine_id, c.expiry_date);
       updated = true;
     }
     if (!c.status) {
@@ -33,10 +34,15 @@ try {
   console.error('Error initializing default file DB keys:', e);
 }
 
+// Keys are derived (deterministic Ed25519) from machine + expiry, so re-sign on
+// read: rows still holding old AES keys show a valid key without a migration.
+const withSignedKey = (c: Customer): Customer => ({ ...c, license_key: signLicense(c.machine_id, c.expiry_date) });
+
 /**
  * Checks if the system is running in demo/mock database fallback mode.
  */
 export async function checkDemoMode() {
+  await requireAdmin();
   return isDemoMode;
 }
 
@@ -44,12 +50,13 @@ export async function checkDemoMode() {
  * Fetches all customers from Supabase or returns mock file data.
  */
 export async function fetchCustomers() {
+  await requireAdmin();
   if (isDemoMode) {
     const list = readCustomers();
     const sorted = [...list].sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
-    return { success: true, data: sorted, isDemo: true, isStatusColumnMissing: false };
+    return { success: true, data: sorted.map(withSignedKey), isDemo: true, isStatusColumnMissing: false };
   }
 
   try {
@@ -90,7 +97,7 @@ export async function fetchCustomers() {
       writeCustomers(mapped);
     }
 
-    return { success: true, data: mapped, isDemo: false, isStatusColumnMissing };
+    return { success: true, data: mapped.map(withSignedKey), isDemo: false, isStatusColumnMissing };
   } catch (err: any) {
     console.error('Error fetching customers:', err);
     return { error: err.message || 'An unexpected error occurred' };
@@ -108,6 +115,7 @@ export async function createCustomer(formData: {
   planDuration: string;
   price: number;
 }) {
+  await requireAdmin();
   const { labName, ownerName, phone, machineId, planDuration, price } = formData;
 
   if (!labName || !ownerName || !phone || !machineId || !planDuration) {
@@ -127,7 +135,7 @@ export async function createCustomer(formData: {
     expiry.setFullYear(expiry.getFullYear() + 1);
   }
   const expiryStr = expiry.toISOString();
-  const licenseKey = encrypt(machineId, expiryStr);
+  const licenseKey = signLicense(machineId, expiryStr);
 
   if (isDemoMode) {
     const list = readCustomers();
@@ -183,6 +191,7 @@ export async function createCustomer(formData: {
  * Renews a customer's license by extending it by 1 year and regenerating the key.
  */
 export async function renewLicense(id: string, machineId: string) {
+  await requireAdmin();
   if (!id || !machineId) {
     return { error: 'Customer ID and Machine ID are required' };
   }
@@ -190,7 +199,7 @@ export async function renewLicense(id: string, machineId: string) {
   const expiry = new Date();
   expiry.setFullYear(expiry.getFullYear() + 1);
   const expiryStr = expiry.toISOString();
-  const licenseKey = encrypt(machineId, expiryStr);
+  const licenseKey = signLicense(machineId, expiryStr);
 
   if (isDemoMode) {
     const list = readCustomers();
@@ -234,6 +243,7 @@ export async function renewLicense(id: string, machineId: string) {
  * Deletes a customer.
  */
 export async function deleteCustomer(id: string) {
+  await requireAdmin();
   if (!id) {
     return { error: 'Customer ID is required' };
   }
@@ -266,6 +276,7 @@ export async function deleteCustomer(id: string) {
  * Updates a customer's license status (ACTIVE | PAUSED | STOPPED)
  */
 export async function updateCustomerStatus(id: string, status: 'ACTIVE' | 'PAUSED' | 'STOPPED') {
+  await requireAdmin();
   if (!id || !status) {
     return { error: 'Customer ID and status are required' };
   }
@@ -334,8 +345,9 @@ export async function updateCustomerStatus(id: string, status: 'ACTIVE' | 'PAUSE
  * Decrypts a license key and returns the decrypted payload parameters.
  */
 export async function verifyLicenseKey(licenseKey: string) {
+  await requireAdmin();
   try {
-    const decrypted = decrypt(licenseKey);
+    const decrypted = verifyLicense(licenseKey);
     return { success: true, machineId: decrypted.machineId, expirationDate: decrypted.expirationDate };
   } catch (err: any) {
     return { error: err.message || 'Verification failed: invalid key structure' };
@@ -352,6 +364,7 @@ export async function pushSoftwareUpdate(formData: {
   downloadUrl: string;
   isCritical: boolean;
 }) {
+  await requireAdmin();
   const { version, title, releaseNotes, downloadUrl, isCritical } = formData;
   if (!version || !title || !releaseNotes || !downloadUrl) {
     return { error: 'All update fields are required' };
@@ -382,6 +395,7 @@ export async function pushSoftwareUpdate(formData: {
  * Fetches all updates.
  */
 export async function fetchSoftwareUpdates() {
+  await requireAdmin();
   try {
     const updates = readUpdates();
     return { success: true, data: updates };
@@ -394,6 +408,7 @@ export async function fetchSoftwareUpdates() {
  * Generates a cryptographically signed verification link containing the license/customer data payload.
  */
 export async function generateVerificationLink(customer: Customer) {
+  await requireAdmin();
   try {
     const crypto = await import('crypto');
     const zlib = await import('zlib');

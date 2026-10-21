@@ -26,11 +26,10 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const adminPassword = process.env.ADMIN_PASSWORD || 'photoadmin';
-  const expectedToken = await getExpectedToken(adminPassword);
-
+  // Fail closed: a missing env var used to fall back to the guessable 'photoadmin'.
+  const adminPassword = process.env.ADMIN_PASSWORD;
   const session = request.cookies.get('admin_session')?.value;
-  const isAuthenticated = session === expectedToken;
+  const isAuthenticated = !!adminPassword && session === (await getExpectedToken(adminPassword));
 
   // 1. Unauthenticated users trying to access dashboard should be redirected to login (/)
   if (pathname.startsWith('/dashboard') && !isAuthenticated) {

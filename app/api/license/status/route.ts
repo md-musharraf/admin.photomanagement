@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabaseClient';
 import { readCustomers } from '@/lib/fileDb';
+import { signLicense } from '@/lib/keygen';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,66 +11,47 @@ const isDemoMode =
   !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.includes('dummy');
 
+// GUIDs, hex machine-ids and hostnames. Rejecting everything else means ILIKE
+// can't be fed `%` / `*` to match (and leak) another customer's record.
+const MACHINE_ID = /^[A-Za-z0-9._-]{1,128}$/;
+
+async function findCustomer(machineId: string) {
+  if (isDemoMode) {
+    return readCustomers().find((c) => c.machine_id.trim().toLowerCase() === machineId.toLowerCase()) ?? null;
+  }
+  const { data, error } = await supabase
+    .from('photo_customers')
+    .select('machine_id, status, expiry_date')
+    .ilike('machine_id', machineId.replace(/_/g, '\\_')) // `_` is a single-char wildcard
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data;
+}
+
 export async function GET(request: NextRequest) {
+  const machineId = request.nextUrl.searchParams.get('machineId')?.trim() ?? '';
+  if (!MACHINE_ID.test(machineId)) {
+    return NextResponse.json({ success: false, error: 'Invalid machineId' }, { status: 400 });
+  }
+
   try {
-    const { searchParams } = new URL(request.url);
-    const machineId = searchParams.get('machineId');
-
-    if (!machineId) {
-      return NextResponse.json({ success: false, error: 'machineId query parameter is required' }, { status: 400 });
+    const customer = await findCustomer(machineId);
+    if (!customer) {
+      return NextResponse.json(
+        { success: false, status: 'DELETED', reason: 'Machine ID not registered in database' },
+        { status: 404 },
+      );
     }
-
-    if (isDemoMode) {
-      const list = readCustomers();
-      const customer = list.find((c) => c.machine_id.trim().toLowerCase() === machineId.trim().toLowerCase());
-      
-      if (customer) {
-        return NextResponse.json({
-          success: true,
-          status: customer.status || 'ACTIVE',
-          expiryDate: customer.expiry_date,
-          licenseKey: customer.license_key,
-        });
-      } else {
-        return NextResponse.json({
-          success: false,
-          status: 'DELETED',
-          reason: 'Machine ID not registered in database'
-        }, { status: 404 });
-      }
-    }
-
-    // Supabase Mode
-    const { data, error } = await supabase
-      .from('photo_customers')
-      .select('*')
-      .ilike('machine_id', machineId)
-      .maybeSingle();
-
-    if (error) {
-      console.error('Supabase error checking license status:', error);
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-    }
-
-    if (data) {
-      // Direct status check from Supabase data, defaulting to 'ACTIVE' if missing
-      const status = data.status || 'ACTIVE';
-
-      return NextResponse.json({
-        success: true,
-        status: status,
-        expiryDate: data.expiry_date,
-        licenseKey: data.license_key,
-      });
-    } else {
-      return NextResponse.json({
-        success: false,
-        status: 'DELETED',
-        reason: 'Machine ID not registered in database'
-      }, { status: 404 });
-    }
-  } catch (err: any) {
+    return NextResponse.json({
+      success: true,
+      status: customer.status || 'ACTIVE',
+      expiryDate: customer.expiry_date,
+      // Freshly signed on every check: clients holding old AES keys are
+      // upgraded to the Ed25519 format automatically on their next sync.
+      licenseKey: signLicense(customer.machine_id, customer.expiry_date),
+    });
+  } catch (err) {
     console.error('Failed to retrieve license status:', err);
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Status check failed' }, { status: 500 });
   }
 }
