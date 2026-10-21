@@ -23,9 +23,10 @@ async function findCustomer(machineId: string) {
     .from('photo_customers')
     .select('machine_id, status, expiry_date')
     .ilike('machine_id', machineId.replace(/_/g, '\\_')) // `_` is a single-char wildcard
-    .maybeSingle();
+    .order('created_at', { ascending: false })
+    .limit(1); // maybeSingle() errored when a PC was registered twice: newest row wins
   if (error) throw new Error(error.message);
-  return data;
+  return data?.[0] ?? null;
 }
 
 export async function GET(request: NextRequest) {

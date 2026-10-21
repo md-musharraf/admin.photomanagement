@@ -135,7 +135,12 @@ export async function createCustomer(formData: {
     expiry.setFullYear(expiry.getFullYear() + 1);
   }
   const expiryStr = expiry.toISOString();
-  const licenseKey = signLicense(machineId, expiryStr);
+  let licenseKey: string;
+  try {
+    licenseKey = signLicense(machineId, expiryStr);
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
 
   if (isDemoMode) {
     const list = readCustomers();
@@ -199,7 +204,12 @@ export async function renewLicense(id: string, machineId: string) {
   const expiry = new Date();
   expiry.setFullYear(expiry.getFullYear() + 1);
   const expiryStr = expiry.toISOString();
-  const licenseKey = signLicense(machineId, expiryStr);
+  let licenseKey: string;
+  try {
+    licenseKey = signLicense(machineId, expiryStr);
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
 
   if (isDemoMode) {
     const list = readCustomers();

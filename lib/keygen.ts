@@ -9,9 +9,16 @@ import crypto from 'crypto';
 let cached: crypto.KeyObject | null = null;
 function privateKey(): crypto.KeyObject {
   if (cached) return cached;
-  const b64 = process.env.LICENSE_PRIVATE_KEY;
-  if (!b64) throw new Error('LICENSE_PRIVATE_KEY is not set');
-  cached = crypto.createPrivateKey({ key: Buffer.from(b64, 'base64'), format: 'der', type: 'pkcs8' });
+  // Tolerate the usual paste mistakes: surrounding quotes/whitespace or the "NAME=" prefix.
+  const b64 = (process.env.LICENSE_PRIVATE_KEY ?? '').trim().replace(/^LICENSE_PRIVATE_KEY=/, '').replace(/^["']|["']$/g, '');
+  if (!b64) {
+    throw new Error('LICENSE_PRIVATE_KEY is not set on this deployment. Add it in Vercel → Settings → Environment Variables (Production), then redeploy.');
+  }
+  try {
+    cached = crypto.createPrivateKey({ key: Buffer.from(b64, 'base64'), format: 'der', type: 'pkcs8' });
+  } catch {
+    throw new Error('LICENSE_PRIVATE_KEY is invalid. Paste only the base64 value (no name, no quotes), then redeploy.');
+  }
   return cached;
 }
 
